@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0b0d">
+  <meta name="description" content="Mod Hub — mods and tools for Meta Quest">
+  <title>Mod Hub</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%235b9dff'/%3E%3Cpath d='M12 5.5l5.5 3.1v6.8L12 18.5l-5.5-3.1V8.6L12 5.5z' fill='none' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <style>
+    /* ---------- Tokens ---------- */
+    :root {
+      --bg: #0b0b0d;
+      --surface: #121216;
+      --surface-raised: #17171c;
+      --border: #22222a;
+      --border-strong: #32323d;
+      --text: #ededf0;
+      --text-muted: #9a9aa6;
+      --text-faint: #5f5f6b;
+      --accent: #5b9dff;
+      --accent-hover: #7ab1ff;
+      --ok: #6fcf8f;
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-pill: 999px;
+      --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+      --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      color-scheme: dark;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      position: relative;
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* One still glow near the top, no animation. */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(60% 40% at 50% -8%, rgba(91, 157, 255, 0.10), transparent 70%);
+    }
+
+    a { color: inherit; }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    [hidden] { display: none !important; }
+
+    /* ---------- Layout ---------- */
+    .page {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 640px;
+      flex: 1 0 auto;
+      display: flex;
+      flex-direction: column;
+      padding: 80px 20px 40px;
+    }
+
+    .footer {
+      margin-top: auto;
+      padding-top: 56px;
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--text-faint);
+    }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin: 0 0 40px;
+    }
+
+    .avatar-wrap {
+      width: 84px;
+      height: 84px;
+      margin-bottom: 18px;
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--accent);
+      box-shadow: 0 0 22px rgba(91, 157, 255, 0.18);
+    }
+
+    .avatar svg { width: 34px; height: 34px; }
+
+    .hero-title {
+      margin: 0;
+      font-size: clamp(1.9rem, 6vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-sub {
+      margin: 8px 0 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    /* ---------- Section labels ---------- */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 14px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .section-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ---------- Search ---------- */
+    .search {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .search input {
+      width: 100%;
+      height: 50px;
+      padding: 0 54px 0 46px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      color: var(--text);
+      font: 500 0.95rem var(--font-sans);
+      transition: border-color 0.2s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .search input::placeholder { color: var(--text-faint); }
+    .search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+    .search input:focus { outline: none; border-color: var(--border-strong); }
+
+    .search > svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      transform: translateY(-50%);
+      color: var(--text-faint);
+      pointer-events: none;
+    }
+
+    .search kbd {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font: 600 0.75rem var(--font-mono);
+      color: var(--text-faint);
+      transition: opacity 0.2s ease;
+    }
+
+    .search input:focus ~ kbd { opacity: 0; }
+
+    .empty {
+      display: none;
+      margin: 8px 0 0;
+      padding: 26px;
+      text-align: center;
+      color: var(--text-muted);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-md);
+    }
+
+    .empty.show { display: block; }
+
+    /* ---------- List rows ---------- */
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s var(--ease);
+    }
+
+    .row:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-raised);
+    }
+
+    .row-body {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .row-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .row-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      overflow-wrap: anywhere;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row-icon {
+      flex: none;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+      color: var(--text-faint);
+      transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease);
+    }
+
+    .row-icon svg { width: 16px; height: 16px; }
+
+    .row:hover .row-icon {
+      color: var(--accent);
+      border-color: var(--accent);
+      transform: translateX(2px);
+    }
+
+    /* Download states */
+    .row.is-loading .row-icon {
+      color: var(--accent);
+      border-color: var(--accent);
+      animation: spin 0.9s linear infinite;
+    }
+
+    .row.is-done .row-icon {
+      color: var(--ok);
+      border-color: rgba(111, 207, 143, 0.45);
+      animation: none;
+    }
+
+    .row.is-done .row-desc { color: var(--ok); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- Badge ---------- */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 9px;
+      padding: 2px 9px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-pill);
+      font-size: 0.66rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      vertical-align: 2px;
+    }
+
+    /* ---------- Install hint ---------- */
+    .hint {
+      margin: 22px 0 0;
+      font-size: 0.8125rem;
+      color: var(--text-faint);
+      text-align: center;
+    }
+
+    .hint code {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 7px;
+      white-space: nowrap;
+    }
+
+    /* ---------- Toast ---------- */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-pill);
+      background: var(--surface-raised);
+      box-shadow: 0 16px 40px -16px #000;
+      font-size: 0.875rem;
+      font-weight: 500;
+      white-space: nowrap;
+      transform: translate(-50%, 160%);
+      transition: transform 0.35s var(--ease);
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toast.show { transform: translate(-50%, 0); }
+
+    .toast .tick {
+      width: 18px;
+      height: 18px;
+      flex: none;
+      color: var(--ok);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="avatar-wrap">
+        <div class="avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3.5l7 4v9l-7 4-7-4v-9l7-4z"/>
+            <path d="M12 12.2l7-3.9M12 12.2L5 8.3M12 12.2V20"/>
+          </svg>
+        </div>
+      </div>
+      <h1 class="hero-title">Mod Hub</h1>
+      <p class="hero-sub">Mods &amp; tools for Meta Quest</p>
+    </header>
+
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Search mods" aria-label="Search mods" data-filter="#mod-list" autocomplete="off" spellcheck="false">
+      <kbd>/</kbd>
+    </div>
+
+    <p class="empty" data-empty>Nothing matches that search.</p>
+
+    <div class="section-label">Downloads</div>
+
+    <nav class="list" id="mod-list" aria-label="Mods">
+      <a class="row" href="https://raw.githubusercontent.com/icodewithai1/modding/main/LibLoader1.apk"
+         download="LibLoader1.apk"
+         data-search="libloader .so mod loader for meta quest apk package android sideload"
+         id="libloader-row"
+         aria-label="Download LibLoader, a .so mod loader for Meta Quest">
+        <span class="row-body">
+          <span class="row-title">LibLoader<span class="badge">APK</span></span>
+          <span class="row-desc" id="libloader-desc">.so mod loader for Meta Quest</span>
+        </span>
+        <span class="row-icon" id="libloader-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 19.5h16"/>
+          </svg>
+        </span>
+      </a>
+    </nav>
+
+    <p class="hint">Enable Developer Mode, then sideload with SideQuest or <code>adb install LibLoader1.apk</code></p>
+
+    <footer class="footer">
+      Mod Hub — unofficial community project · Not affiliated with Meta
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+    <span id="toast-text">Download started</span>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var APK_URL = "https://raw.githubusercontent.com/icodewithai1/modding/main/LibLoader1.apk";
+  var FILE_NAME = "LibLoader1.apk";
+  var DEFAULT_DESC = ".so mod loader for Meta Quest";
+
+  var row = document.getElementById("libloader-row");
+  var desc = document.getElementById("libloader-desc");
+  var icon = document.getElementById("libloader-icon");
+  var toast = document.getElementById("toast");
+  var toastText = document.getElementById("toast-text");
+
+  var toastTimer = null;
+  var resetTimer = null;
+  var busy = false;
+
+  var ICON_CIRCLE = '<path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/>';
+  var ICON_DOWNLOAD = '<path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 19.5h16"/>';
+  var ICON_CHECK = '<path d="M20 6L9 17l-5-5"/>';
+
+  function showToast(message) {
+    toastText.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 4200);
+  }
+
+  function setIcon(svgMarkup) {
+    icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round">' + svgMarkup + '</svg>';
+  }
+
+  function resetUI(delay) {
+    clearTimeout(resetTimer);
+    resetTimer = setTimeout(function () {
+      busy = false;
+      row.classList.remove("is-loading", "is-done");
+      desc.textContent = DEFAULT_DESC;
+      setIcon(ICON_DOWNLOAD);
+    }, delay || 0);
+  }
+
+  function success() {
+    row.classList.remove("is-loading");
+    row.classList.add("is-done");
+    desc.textContent = "Downloaded — check your files";
+    setIcon(ICON_CHECK);
+    showToast(FILE_NAME + " downloaded");
+    resetUI(5000);
+  }
+
+  // Simple anchor click: lets the browser download the file directly.
+  function directDownload() {
+    var a = document.createElement("a");
+    a.href = APK_URL;
+    a.download = FILE_NAME;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function startDownload() {
+    if (busy) return;
+    busy = true;
+
+    row.classList.remove("is-done");
+    row.classList.add("is-loading");
+    desc.textContent = "Starting download…";
+    setIcon(ICON_CIRCLE);
+
+    if (typeof fetch !== "function" || !window.ReadableStream) {
+      directDownload();
+      showToast("Download started");
+      resetUI(3000);
+      return;
+    }
+
+    fetch(APK_URL, { mode: "cors", cache: "no-cache" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        var total = Number(res.headers.get("content-length")) || 0;
+        if (!res.body || typeof res.body.getReader !== "function" || !total) {
+          return res.blob();
+        }
+        var reader = res.body.getReader();
+        var received = 0;
+        var chunks = [];
+
+        function pump() {
+          return reader.read().then(function (step) {
+            if (step.done) {
+              return new Blob(chunks, { type: "application/vnd.android.package-archive" });
+            }
+            chunks.push(step.value);
+            received += step.value.length;
+            var pct = Math.min(100, Math.round((received / total) * 100));
+            desc.textContent = "Downloading… " + pct + "%";
+            return pump();
+          });
+        }
+        return pump();
+      })
+      .then(function (blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = FILE_NAME;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+        success();
+      })
+      .catch(function () {
+        directDownload();
+        showToast("Starting download…");
+        resetUI(3000);
+      });
+  }
+
+  row.addEventListener("click", function (e) {
+    e.preventDefault();
+    startDownload();
+  });
+
+  row.addEventListener("keydown", function (e) {
+    if (e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      startDownload();
+    }
+  });
+
+  /* ---------- Search filter (same behavior as the reference page) ---------- */
+  var searchInput = document.querySelector("[data-filter]");
+  var emptyState = document.querySelector("[data-empty]");
+
+  if (searchInput) {
+    var target = document.querySelector(searchInput.getAttribute("data-filter"));
+    var rows = target ? Array.prototype.slice.call(target.querySelectorAll(".row")) : [];
+
+    var filter = function () {
+      var q = searchInput.value.trim().toLowerCase();
+      var visible = 0;
+
+      rows.forEach(function (el) {
+        var haystack = (el.getAttribute("data-search") || el.textContent).toLowerCase();
+        var match = !q || haystack.indexOf(q) !== -1;
+        el.hidden = !match;
+        if (match) visible++;
+      });
+
+      if (emptyState) emptyState.classList.toggle("show", visible === 0 && q.length > 0);
+    };
+
+    searchInput.addEventListener("input", filter);
+    filter();
+
+    document.addEventListener("keydown", function (e) {
+      var tag = (e.target && e.target.tagName) || "";
+      var typing = tag === "INPUT" || tag === "TEXTAREA" || (e.target && e.target.isContentEditable);
+
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        searchInput.focus();
+      } else if (e.key === "Escape" && document.activeElement === searchInput) {
+        searchInput.value = "";
+        filter();
+        searchInput.blur();
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
